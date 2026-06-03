@@ -1,0 +1,15 @@
+2026-06-01 12:00 — Prompt inicial del usuario:
+"Desarrollar 'Dominoes Hotspot', una PWA móvil de Dominó Doble Seis con mecánicas offline, físicas fluidas y conectividad P2P descentralizada. React, Vite, TypeScript, Tailwind CSS, Framer Motion, WebRTC."
+
+Plan aprobado: Fases 1→2→3→4, scaffolding completo primero.
+
+2026-06-01 12:00 — Usuario aprueba plan detallado con scaffolding + todas las fases.
+
+2026-06-01 12:00 — Usuario dice "Incluye todo" (scaffolding completo + implementación).
+2026-06-01 12:00 — Usuario dice "si" (aprueba plan).
+2026-06-01 12:00 — Usuario dice "hazlo" (modo implementación activado).
+- Creados todos los archivos: scaffolding, DominoEngine.ts, gameStore.ts, componentes UI, WebRTCManager, QRConnectionArea, App.tsx.
+- npm install exitoso.
+- TypeScript compila sin errores.
+- Vite build exitoso (PWA con service worker generado).
+- Proyecto completo y funcional.

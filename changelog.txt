@@ -1,0 +1,105 @@
+=== CHANGELOG ===
+
+[2026-06-01] v0.1.0 — Scaffolding inicial
+- Creado prompts.txt (registro de prompts)
+- Creado changelog.txt (este archivo)
+- Creado README.md (documentación completa del proyecto)
+- Creado package.json con dependencias: React 18, Vite 5, TypeScript, Tailwind CSS, Framer Motion, Zustand, Lucide React, clsx, tailwind-merge, vite-plugin-pwa, qrcode.react, html5-qrcode
+- Creado vite.config.ts con PWA plugin (offline support)
+- Creado tsconfig.json, tsconfig.node.json
+- Creado tailwind.config.js, postcss.config.js
+- Creado index.html con meta tags PWA, orientation lock, viewport
+- Creado public/manifest.json (PWA manifest)
+- Creado src/index.css (Tailwind base + global styles)
+- Creado src/main.tsx (entry point)
+- Creado src/vite-env.d.ts (Vite type declarations)
+- Creado src/types/index.ts (interfaces: Tile, Player, Board, GameState)
+- Instaladas dependencias via npm
+
+[2026-06-01] v0.2.0 — FASE 1: DominoEngine.ts
+- Creado src/engine/DominoEngine.ts con:
+  - generateTiles(): 28 fichas [0|0] a [6|6]
+  - Tile, BoardEdge, PlayResult types
+  - validatePlay(): validación de jugada en extremos
+  - getValidPlays(): fichas jugables de una mano
+  - applyPlay(): colocar ficha en tablero
+  - checkRoundEnd(): condiciones Dominó o Tranca
+  - calculateHandScore(): suma de pintas
+  - botPlay(): heurística simple (priorizar fichas pesadas)
+  - determineFirstPlayer(): quién sale cada ronda
+
+[2026-06-01] v0.3.0 — FASE 2: gameStore.ts
+- Creado src/store/gameStore.ts con Zustand:
+  - Estado: players, board, turn, gameState, scores
+  - Acciones: startGame, playTile, pass, nextTurn, setRoundWinner
+  - Bots automáticos con delay (setTimeout)
+  - Computed: currentPlayer, validPlays
+
+[2026-06-01] v0.4.0 — FASE 3: UI Components
+- Creado componentes:
+  - TileFace.tsx: representación visual de pips
+  - Tile.tsx: ficha con drag & drop, snap a extremos
+  - PlayerHand.tsx: mano del jugador con drag hacia tablero
+  - Board.tsx: tablero con pan/zoom, layout serpiente
+  - TurnOverlay.tsx: "Pasa el teléfono" entre turnos
+  - ScoreBoard.tsx: puntuación global
+  - GameSetup.tsx: pantalla de inicio/configuración
+- Creado App.tsx: orquestador de pantallas y estados
+- Creado hooks/useGame.ts: lógica de drag & drop
+
+[2026-06-01] v0.6.0 — Revisión y mejora completa del código
+- REWRITE DominoEngine.ts: corregidos bugs (tileCounter global, lógica confusa
+  de primera jugada, heurística botPlay mejorada con dobles como penalty,
+  sortHand agregado, isFirstMove exportado, findPlayerWithDoubleSix ahora
+  usa helper, manejo de empate en tranca).
+- REWRITE gameStore.ts:
+  * Cancelación de setTimeout al reset/cambio de estado (no más memory leak).
+  * clearAllTimers() al startGame/resetRound/resetGame.
+  * finishRound() extraído, calcula gameOver cuando alguien llega a 100 pts.
+  * gameOverWinnerId agregado al estado.
+  * setRoundWinner eliminado (no se usaba).
+  * firstPlayerIndex eliminado (era redundante con currentTurnIndex).
+  * nextTurn simplificado (sin setTimeout anidado).
+  * Validación de gameState en playTile/pass.
+- REWRITE Tile.tsx:
+  * dragConstraints apuntando a useRef inexistente CORREGIDO (eliminado).
+  * Soporte onClick/onTap para jugadas en primer movimiento.
+  * Indicador visual "JUGAR" cuando boardEmpty.
+  * hover: lift up con whileHover.
+- REWRITE Board.tsx:
+  * EndHighlight muestra extremos con animación pulse.
+  * Drag/pan area con dragConstraints correcto al container.
+  * Estado vacío con animación de "esperando".
+  * Ya no maneja drops (simplificado, drag de fichas viene de Tile).
+- REWRITE useGame.ts:
+  * showTurnOverlay simplificado (siempre se muestra cuando es tu turno).
+  * handleTap para jugar al click (accesible a tap sin drag).
+  * isBoardEmpty exportado para que App muestre mensaje.
+  * Cleanup de body overflow.
+- REWRITE App.tsx:
+  * Componente PlayingScreen extraído.
+  * RoundEndModal y GameOverModal separados.
+  * Botón X para salir al menú.
+- CREADO RoundEndModal.tsx: modal fin de ronda con tabla de posiciones.
+- CREADO GameOverModal.tsx: modal fin de juego (100 pts) con corona animada.
+- REWRITE TurnOverlay.tsx:
+  * Modo "isFirstPlayer" para primera jugada sin countdown.
+  * Modo "autoHide" para overlay rápido.
+- REWRITE PlayerHand.tsx: AnimatePresence con layout para entrada/salida.
+- REWRITE WebRTCManager.ts:
+  * Polling con setInterval REEMPLAZADO por eventos icegatheringstatechange
+    + timeout fallback (5s).
+  * onData('offer-ready') confuso ELIMINADO.
+  * Validación de estado al inicio de createOffer/acceptOffer.
+  * disconnect() más robusto con try/catch.
+  * ICE servers adicionales para mejorar conectividad.
+- REWRITE QRConnectionArea.tsx:
+  * Una sola instancia de Html5Qrcode, cleanup correcto con ref.
+  * isMountedRef previene state update después de unmount.
+  * Mensajes de error claros.
+  * Modo scanner dual: para escanear offer O para escanear answer.
+- TIPOS: RoundEndResult reubicado a types/, GameMessage agregado.
+- VITE-ENV.D.TS: declaraciones de qrcode.react/html5-qrcode removidas
+  (ya tienen tipos), solo lucide-react.
+- ICONOS PWA: creados icon-192x192.svg y icon-512x512.svg.
+- VERIFICACIÓN: TypeScript compila, Vite build exitoso.
