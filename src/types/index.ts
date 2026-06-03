@@ -10,6 +10,7 @@ export interface Player {
   type: 'local' | 'bot' | 'network';
   hand: Tile[];
   isConnected?: boolean;
+  teamId?: number; // 1 o 2 para el modo de equipos
 }
 
 export interface PlacedTile {
@@ -42,6 +43,12 @@ export interface RoundEndResult {
   isTie?: boolean;
 }
 
+export interface GameOptions {
+  playerName: string;
+  isTeamMode: boolean;
+  targetScore: number;
+}
+
 export interface GameStore {
   players: Player[];
   board: BoardState;
@@ -52,8 +59,10 @@ export interface GameStore {
   lastPlayedTile: Tile | null;
   winnerId: string | null;
   gameOverWinnerId: string | null;
+  targetScore: number;
+  isTeamMode: boolean;
 
-  startGame: (playerCount: number, botCount: number) => void;
+  startGame: (playerCount: number, botCount: number, options?: GameOptions) => void;
   playTile: (playerId: string, tileId: string, position: 'left' | 'right') => boolean;
   pass: (playerId: string) => void;
   nextTurn: () => void;

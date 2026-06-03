@@ -31,10 +31,10 @@ export default function App() {
   const game = useGame();
   const store = useGameStore();
 
-  /** Inicia partida singleplayer con N bots */
+  /** Inicia partida singleplayer con N bots y opciones */
   const handleStartSingleplayer = useCallback(
-    (botCount: number) => {
-      store.startGame(1, botCount);
+    (botCount: number, options: any) => {
+      store.startGame(1, botCount, options);
       setScreen('playing');
     },
     [store],

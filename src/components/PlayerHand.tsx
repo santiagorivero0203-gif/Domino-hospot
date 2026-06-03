@@ -36,11 +36,11 @@ export default function PlayerHand({
   /* Modo oculto: muestra fichas boca abajo (Pass & Play) */
   if (hidden) {
     return (
-      <div className="flex gap-1.5 justify-center p-3 min-h-[112px]">
+      <div className="flex gap-1 sm:gap-1.5 justify-center px-1 py-2 sm:p-3 min-h-[96px] sm:min-h-[112px]">
         {tiles.map((_, i) => (
           <div
             key={i}
-            className="w-14 h-24 sm:w-16 sm:h-28 rounded-xl border-2 border-white/5 flex items-center justify-center"
+            className="w-11 h-20 sm:w-16 sm:h-28 rounded-xl border-2 border-white/5 flex items-center justify-center"
             style={{
               background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
             }}
@@ -56,7 +56,7 @@ export default function PlayerHand({
 
   return (
     <motion.div
-      className="flex gap-1.5 justify-center p-3 overflow-x-auto min-h-[112px] items-center"
+      className="flex gap-1 sm:gap-1.5 justify-center px-1 py-2 sm:p-3 overflow-x-auto min-h-[96px] sm:min-h-[112px] items-center"
       layout
     >
       <AnimatePresence>

@@ -115,13 +115,16 @@ export default function Board({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden rounded-2xl select-none border border-white/5"
+      className="relative w-full h-full overflow-hidden rounded-[24px] sm:rounded-[36px] select-none border-[12px] sm:border-[20px] border-[#3e2723]"
       style={{
-        background: 'radial-gradient(ellipse at center, rgba(27, 115, 64, 0.8) 0%, rgba(10, 46, 24, 0.9) 100%)',
+        background: '#1b4d3e', // Classic casino green felt
+        boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5)',
       }}
     >
-      {/* Patrón de puntos decorativo sobre el tablero */}
-      <div className="absolute inset-0 dot-pattern opacity-30 pointer-events-none" />
+      {/* Textura de paño (fieltro) */}
+      <div className="absolute inset-0 opacity-15 pointer-events-none mix-blend-overlay" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+      }} />
 
       {/* Indicador de extremos del tablero */}
       <div className="absolute top-3 left-3 z-10 flex gap-2 items-center glass-panel rounded-xl px-3 py-1.5 text-xs font-mono">
@@ -220,8 +223,8 @@ export default function Board({
       <AnimatePresence>
         {highlightEnds && isLocalTurn && !boardEmpty && (
           <>
-            <EndHighlight position="left" value={boardState.leftEnd} x="8%" />
-            <EndHighlight position="right" value={boardState.rightEnd} x="92%" />
+            <EndHighlight position="left" value={boardState.leftEnd} />
+            <EndHighlight position="right" value={boardState.rightEnd} />
           </>
         )}
       </AnimatePresence>
@@ -236,20 +239,18 @@ export default function Board({
 function EndHighlight({
   position,
   value,
-  x,
 }: {
   position: 'left' | 'right';
   value: number | null;
-  x: string;
 }) {
+  const isLeft = position === 'left';
   return (
     <motion.div
       id={`drop-zone-${position}`}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
-      className="absolute top-1/2 -translate-y-1/2 pointer-events-none"
-      style={{ left: x, transform: 'translate(-50%, -50%)' }}
+      className={`absolute top-1/2 -translate-y-1/2 pointer-events-none ${isLeft ? 'left-3 sm:left-10' : 'right-3 sm:right-10'}`}
     >
       <motion.div
         animate={{ scale: [1, 1.08, 1] }}

@@ -19,8 +19,59 @@ export default function ScoreBoard({
   currentTurnIndex,
   roundNumber,
 }: ScoreBoardProps) {
+  const isTeamMode = players.some(p => p.teamId);
+
+  if (isTeamMode) {
+    const teams = [1, 2];
+    
+    return (
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <div className="text-gold text-[10px] font-bold glass-panel rounded-lg px-2.5 py-1 flex-shrink-0 tracking-wider">
+          R{roundNumber}
+        </div>
+        
+        {teams.map(teamId => {
+          const teamPlayers = players.filter(p => p.teamId === teamId);
+          if (teamPlayers.length === 0) return null;
+
+          const teamScore = scores.find(s => s.playerId === teamPlayers[0]?.id)?.points ?? 0;
+          const isTeamActive = teamPlayers.some(p => p.id === players[currentTurnIndex]?.id);
+          
+          return (
+             <motion.div
+              key={`team-${teamId}`}
+              animate={isTeamActive ? { scale: [1, 1.03, 1] } : {}}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className={`
+                flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] transition-all duration-300 flex-shrink-0
+                ${isTeamActive
+                  ? 'glass-panel border-emerald/30 shadow-neon-green'
+                  : 'bg-white/5 border border-white/5'
+                }
+              `}
+            >
+              {isTeamActive && (
+                <motion.div
+                  animate={{ scale: [1, 1.4, 1] }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                  className="w-1.5 h-1.5 rounded-full bg-emerald flex-shrink-0"
+                />
+              )}
+              <span className={`font-semibold ${isTeamActive ? 'text-white' : 'text-white/50'}`}>
+                Eq. {teamId} <span className="text-[9px] font-normal opacity-50">({teamPlayers.map(p => p.name).join(' + ')})</span>
+              </span>
+              <span className={`font-mono font-bold ml-1 ${isTeamActive ? 'text-gold' : 'text-white/30'}`}>
+                {teamScore}
+              </span>
+            </motion.div>
+          )
+        })}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-2 overflow-x-auto">
+    <div className="flex items-center gap-2 overflow-x-auto pb-1">
       {/* Badge de ronda */}
       <div className="text-gold text-[10px] font-bold glass-panel rounded-lg px-2.5 py-1 flex-shrink-0 tracking-wider">
         R{roundNumber}
@@ -36,7 +87,7 @@ export default function ScoreBoard({
             animate={isCurrent ? { scale: [1, 1.03, 1] } : {}}
             transition={{ repeat: Infinity, duration: 2 }}
             className={`
-              flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] transition-all duration-300 flex-shrink-0
+              flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] transition-all duration-300 flex-shrink-0
               ${isCurrent
                 ? 'glass-panel border-emerald/30 shadow-neon-green'
                 : 'bg-white/5 border border-white/5'

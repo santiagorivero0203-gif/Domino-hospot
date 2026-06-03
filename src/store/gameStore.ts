@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameStore, Player, BoardState, PlacedTile, RoundEndResult } from '../types';
+import type { GameStore, Player, BoardState, PlacedTile, RoundEndResult, GameOptions } from '../types';
 import {
   generateTiles,
   dealTiles,
@@ -20,7 +20,6 @@ function getRandomId(): string {
 
 const BOT_DELAY = 900;
 const POST_PLAY_DELAY = 350;
-const TOTAL_SCORE_TO_WIN = 100;
 
 interface InternalState {
   botTimeoutId: number | null;
@@ -57,8 +56,10 @@ const useGameStore = create<GameStore>((set, get) => ({
   lastPlayedTile: null,
   winnerId: null,
   gameOverWinnerId: null,
+  targetScore: 100,
+  isTeamMode: false,
 
-  startGame: (playerCount: number, botCount: number) => {
+  startGame: (playerCount: number, botCount: number, options?: GameOptions) => {
     clearAllTimers();
 
     const tiles = generateTiles();
@@ -70,18 +71,21 @@ const useGameStore = create<GameStore>((set, get) => ({
     for (let i = 0; i < playerCount; i++) {
       players.push({
         id: getRandomId(),
-        name: i === 0 ? 'Tú' : `Jugador ${i + 1}`,
+        name: i === 0 ? (options?.playerName || 'Tú') : `Jugador ${i + 1}`,
         type: 'local',
         hand: hands[i],
+        teamId: options?.isTeamMode ? (i % 2 === 0 ? 1 : 2) : undefined,
       });
     }
 
     for (let i = 0; i < botCount; i++) {
+      const pIdx = playerCount + i;
       players.push({
         id: getRandomId(),
         name: `Bot ${i + 1}`,
         type: 'bot',
-        hand: hands[playerCount + i],
+        hand: hands[pIdx],
+        teamId: options?.isTeamMode ? (pIdx % 2 === 0 ? 1 : 2) : undefined,
       });
     }
 
@@ -105,6 +109,8 @@ const useGameStore = create<GameStore>((set, get) => ({
       lastPlayedTile: null,
       winnerId: null,
       gameOverWinnerId: null,
+      targetScore: options?.targetScore || 100,
+      isTeamMode: options?.isTeamMode || false,
     });
 
     if (players[firstIdx].type === 'bot') {
@@ -250,6 +256,8 @@ const useGameStore = create<GameStore>((set, get) => ({
       lastPlayedTile: null,
       winnerId: null,
       gameOverWinnerId: null,
+      targetScore: 100,
+      isTeamMode: false,
     });
   },
 }));
@@ -283,16 +291,36 @@ function executeBotPlay() {
 
 function finishRound(result: RoundEndResult) {
   const state = useGameStore.getState();
-  const newScores = state.scores.map((s) => {
-    const found = result.scores.find((rs) => rs.playerId === s.playerId);
-    if (found) {
-      return { ...s, points: s.points + found.handScore };
-    }
-    return s;
-  });
+  let newScores = [...state.scores];
+
+  if (state.isTeamMode) {
+    const teamRoundScores = { 1: 0, 2: 0 };
+    result.scores.forEach((rs) => {
+      const p = state.players.find((p) => p.id === rs.playerId);
+      if (p && p.teamId) {
+        teamRoundScores[p.teamId as 1 | 2] += rs.handScore;
+      }
+    });
+
+    newScores = state.scores.map((s) => {
+      const p = state.players.find((p) => p.id === s.playerId);
+      if (p && p.teamId) {
+        return { ...s, points: s.points + teamRoundScores[p.teamId as 1 | 2] };
+      }
+      return s;
+    });
+  } else {
+    newScores = state.scores.map((s) => {
+      const found = result.scores.find((rs) => rs.playerId === s.playerId);
+      if (found) {
+        return { ...s, points: s.points + found.handScore };
+      }
+      return s;
+    });
+  }
 
   const maxPoints = Math.max(...newScores.map((s) => s.points));
-  const gameOver = maxPoints >= TOTAL_SCORE_TO_WIN;
+  const gameOver = maxPoints >= state.targetScore;
   const winners = newScores.filter((s) => s.points === maxPoints);
   const gameOverWinnerId =
     gameOver && winners.length === 1 ? winners[0].playerId : null;

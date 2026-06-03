@@ -160,7 +160,7 @@ export default function Tile({
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       onClick={handleClick}
       className={`
-        relative w-14 h-24 sm:w-16 sm:h-28 bg-tile rounded-xl border-2
+        relative w-11 h-20 sm:w-16 sm:h-28 bg-tile rounded-xl border-2
         ${isDraggable && canPlayAny ? 'cursor-grab active:cursor-grabbing' : ''}
         ${isDragging
           ? 'border-gold shadow-[0_0_25px_rgba(251,191,36,0.6)] z-50'
