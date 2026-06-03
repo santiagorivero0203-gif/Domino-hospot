@@ -105,10 +105,10 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
             }
           },
         };
-      } catch (err) {
+      } catch (err: any) {
         if (!isMountedRef.current) return;
         setError(
-          'No se pudo acceder a la cámara. Permítela en tu navegador.',
+          `Error de cámara: ${err?.message || 'Permisos denegados o cámara no disponible. Revisa los permisos de tu navegador.'}`
         );
         setScannerMode(null);
       }
