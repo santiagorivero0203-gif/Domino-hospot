@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { Scan, ArrowLeft, ArrowRight, Check, X, Loader2, AlertCircle } from 'lucide-react';
 import { WebRTCManager, type ConnectionState } from '../network/WebRTCManager';
 
