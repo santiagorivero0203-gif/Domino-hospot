@@ -68,60 +68,70 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
   }, []);
 
   const startScanner = useCallback(
-    async (mode: 'offer' | 'answer') => {
+    (mode: 'offer' | 'answer') => {
       setError(null);
       setScannerMode(mode);
-      try {
-        const el = document.getElementById('qr-reader');
-        if (!el) return;
 
-        el.innerHTML = '';
-        
-        const scanner = new Html5Qrcode('qr-reader');
-
-        await scanner.start(
-          { facingMode: 'environment' },
-          { 
-            fps: 10, 
-            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              const w = Math.max(250, viewfinderWidth || 0);
-              const h = Math.max(250, viewfinderHeight || 0);
-              const size = Math.floor(Math.min(w, h) * 0.8);
-              return { width: size, height: size };
-            }
-          },
-          async (decodedText: string) => {
-            if (!isMountedRef.current) return;
-            await stopScanner();
-            if (mode === 'offer') {
-              await handleScanResult(decodedText);
-            } else {
-              await handleHostScanAnswer(decodedText);
-            }
-          },
-          () => {
-            // fallos de lectura de frame (normal), ignorar
-          },
-        );
-
-        scannerRef.current = {
-          stop: async () => {
-            try {
-              await scanner.stop();
-            } catch {
-              // ignore
-            }
-          },
-        };
-      } catch (err: any) {
+      const initScanner = async () => {
         if (!isMountedRef.current) return;
-        setError(
-          `Error: ${err?.message || 'Permisos denegados o cámara no disponible. Revisa los permisos de tu navegador.'}`
-        );
-        setScannerMode(null);
-      }
+        
+        const el = document.getElementById('qr-reader');
+        if (!el) {
+          // Wait for Framer Motion exit animation to complete and element to mount
+          setTimeout(initScanner, 100);
+          return;
+        }
+
+        try {
+          el.innerHTML = '';
+          const scanner = new Html5Qrcode('qr-reader');
+
+          await scanner.start(
+            { facingMode: 'environment' },
+            { 
+              fps: 10, 
+              qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+                const w = Math.max(250, viewfinderWidth || 0);
+                const h = Math.max(250, viewfinderHeight || 0);
+                const size = Math.floor(Math.min(w, h) * 0.8);
+                return { width: size, height: size };
+              }
+            },
+            async (decodedText: string) => {
+              if (!isMountedRef.current) return;
+              await stopScanner();
+              if (mode === 'offer') {
+                await handleScanResult(decodedText);
+              } else {
+                await handleHostScanAnswer(decodedText);
+              }
+            },
+            () => {
+              // fallos de lectura de frame (normal), ignorar
+            },
+          );
+
+          scannerRef.current = {
+            stop: async () => {
+              try {
+                await scanner.stop();
+              } catch {
+                // ignore
+              }
+            },
+          };
+        } catch (err: any) {
+          if (!isMountedRef.current) return;
+          setError(
+            `Error: ${err?.message || 'Permisos denegados o cámara no disponible. Revisa los permisos de tu navegador.'}`
+          );
+          setScannerMode(null);
+        }
+      };
+
+      initScanner();
     },
-    [],
+    [stopScanner],
   );
 
 
