@@ -77,17 +77,48 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
         
         const el = document.getElementById('qr-reader');
         if (!el) {
-          // Wait for Framer Motion exit animation to complete and element to mount
           setTimeout(initScanner, 100);
           return;
         }
 
         try {
+          // 1. Forzar petición de permisos nativa (esto evita cuelgues internos de la librería)
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+              stream.getTracks().forEach(track => track.stop()); // Cerramos el stream temporal
+            } catch (err: any) {
+              throw new Error('Permiso de cámara denegado o no disponible: ' + err.message);
+            }
+          } else {
+            throw new Error('Tu navegador no soporta acceso a la cámara o no estás en un sitio seguro (HTTPS).');
+          }
+
+          // 2. Obtener lista de cámaras
+          const cameras = await Html5Qrcode.getCameras();
+          if (!cameras || cameras.length === 0) {
+            throw new Error('No se encontraron cámaras en tu dispositivo.');
+          }
+
+          // 3. Seleccionar la mejor cámara
+          let cameraId = cameras[0].id;
+          const backCamera = cameras.find(c => 
+            c.label.toLowerCase().includes('back') || 
+            c.label.toLowerCase().includes('trasera') || 
+            c.label.toLowerCase().includes('environment')
+          );
+          if (backCamera) {
+            cameraId = backCamera.id;
+          } else if (cameras.length > 1) {
+            cameraId = cameras[cameras.length - 1].id;
+          }
+
+          if (!isMountedRef.current) return;
           el.innerHTML = '';
           const scanner = new Html5Qrcode('qr-reader');
 
           await scanner.start(
-            { facingMode: 'environment' },
+            cameraId,
             { 
               fps: 10, 
               qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
@@ -106,9 +137,7 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
                 await handleHostScanAnswer(decodedText);
               }
             },
-            () => {
-              // fallos de lectura de frame (normal), ignorar
-            },
+            () => {} // Ignorar fallos de frames individuales
           );
 
           scannerRef.current = {
@@ -118,13 +147,11 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
               } catch {
                 // ignore
               }
-            },
+            }
           };
         } catch (err: any) {
           if (!isMountedRef.current) return;
-          setError(
-            `Error: ${err?.message || 'Permisos denegados o cámara no disponible. Revisa los permisos de tu navegador.'}`
-          );
+          setError(`Error: ${err?.message || 'Error desconocido al iniciar la cámara.'}`);
           setScannerMode(null);
         }
       };
