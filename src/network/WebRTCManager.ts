@@ -1,4 +1,5 @@
 export type PeerRole = 'host' | 'client';
+import LZString from 'lz-string';
 
 export type ConnectionState =
   | 'idle'
@@ -109,7 +110,7 @@ export class WebRTCManager {
       }
 
       this.setState('waiting-answer');
-      return btoa(JSON.stringify(finalSdp));
+      return LZString.compressToBase64(JSON.stringify(finalSdp));
     } catch (err) {
       this.setState('error');
       this.callbacks.onError('Error al crear oferta: ' + (err as Error).message);
@@ -126,7 +127,16 @@ export class WebRTCManager {
     this.setState('scanning-offer');
 
     try {
-      const offerStr = atob(offerBase64);
+      let offerStr: string | null = null;
+      try {
+        offerStr = LZString.decompressFromBase64(offerBase64);
+      } catch (e) {
+        // ignore
+      }
+      if (!offerStr) {
+        // fallback to standard base64 for backward compatibility
+        offerStr = atob(offerBase64);
+      }
       const offer = JSON.parse(offerStr) as RTCSessionDescriptionInit;
 
       this.pc = new RTCPeerConnection(this.config);
@@ -148,7 +158,7 @@ export class WebRTCManager {
       }
 
       this.setState('connecting');
-      return btoa(JSON.stringify(finalSdp));
+      return LZString.compressToBase64(JSON.stringify(finalSdp));
     } catch (err) {
       this.setState('error');
       this.callbacks.onError('Error al aceptar oferta: ' + (err as Error).message);
@@ -165,7 +175,15 @@ export class WebRTCManager {
     this.setState('connecting');
 
     try {
-      const answerStr = atob(answerBase64);
+      let answerStr: string | null = null;
+      try {
+        answerStr = LZString.decompressFromBase64(answerBase64);
+      } catch (e) {
+        // ignore
+      }
+      if (!answerStr) {
+        answerStr = atob(answerBase64);
+      }
       const answer = JSON.parse(answerStr) as RTCSessionDescriptionInit;
       await this.pc.setRemoteDescription(new RTCSessionDescription(answer));
       return true;
