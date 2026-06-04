@@ -20,6 +20,8 @@ interface PlayerHandProps {
     },
     tile: Tile
   ) => void;
+  /** Se llama cuando el usuario empieza a arrastrar una ficha */
+  onDragStart?: () => void;
   onTap?: (tileId: string) => void;
   hidden?: boolean;
 }
@@ -30,6 +32,7 @@ export default function PlayerHand({
   boardState,
   onPlay,
   onDragEnd,
+  onDragStart,
   onTap,
   hidden = false,
 }: PlayerHandProps) {
@@ -76,6 +79,7 @@ export default function PlayerHand({
               boardState={boardState}
               onPlay={onPlay}
               onDragEnd={onDragEnd}
+              onDragStart={onDragStart}
               onTap={onTap}
             />
           </motion.div>

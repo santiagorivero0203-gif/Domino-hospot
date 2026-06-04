@@ -95,6 +95,8 @@ export default function App() {
 function PlayingScreen({ onExitToMenu }: { onExitToMenu: () => void }) {
   const game = useGame();
   const store = useGameStore();
+  /** Estado que indica si el jugador local está arrastrando una ficha */
+  const [isDraggingTile, setIsDraggingTile] = useState(false);
 
   return (
     <motion.div
@@ -133,6 +135,7 @@ function PlayingScreen({ onExitToMenu }: { onExitToMenu: () => void }) {
           boardState={game.board}
           isLocalTurn={game.isLocalTurn}
           highlightEnds={game.isLocalTurn && game.canCurrentPlayerPlay}
+          isDraggingTile={isDraggingTile}
         />
       </div>
 
@@ -143,7 +146,11 @@ function PlayingScreen({ onExitToMenu }: { onExitToMenu: () => void }) {
           isCurrentPlayer={game.isLocalTurn}
           boardState={game.board}
           onPlay={game.handlePlay}
-          onDragEnd={game.handleDragEnd}
+          onDragEnd={(info, tile) => {
+            setIsDraggingTile(false);
+            game.handleDragEnd(info, tile);
+          }}
+          onDragStart={() => setIsDraggingTile(true)}
           onTap={game.handleTap}
         />
       </div>

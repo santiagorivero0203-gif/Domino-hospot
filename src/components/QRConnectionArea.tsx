@@ -72,7 +72,6 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
       setError(null);
       setScannerMode(mode);
       try {
-        const { Html5Qrcode } = await import('html5-qrcode');
         const el = document.getElementById('qr-reader');
         if (!el) return;
 
@@ -109,7 +108,13 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
 
         await scanner.start(
           cameraId, // Usar el ID exacto del hardware es más robusto en iOS/Android
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { 
+            fps: 10, 
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+              return { width: Math.floor(minEdge * 0.8), height: Math.floor(minEdge * 0.8) };
+            }
+          },
           async (decodedText: string) => {
             if (!isMountedRef.current) return;
             await stopScanner();
@@ -299,7 +304,7 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
               El Client escanea este código para unirse
             </p>
             <div className="bg-white p-4 rounded-2xl shadow-xl">
-              <QRCodeSVG value={offerData} size={220} level="M" />
+              <QRCodeSVG value={offerData} size={320} level="L" />
             </div>
             <div className="flex items-center gap-2 text-yellow-400 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -330,7 +335,7 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
             </h2>
             <div
               id="qr-reader"
-              className="w-64 h-64 bg-black rounded-2xl overflow-hidden border-2 border-slate-600"
+              className="w-full max-w-sm aspect-square bg-black rounded-2xl overflow-hidden border-2 border-slate-600"
             />
             {error && (
               <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 px-3 py-2 rounded-lg">
@@ -360,7 +365,7 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
               El Host debe escanear este QR para establecer la conexión
             </p>
             <div className="bg-white p-4 rounded-2xl shadow-xl">
-              <QRCodeSVG value={answerData} size={220} level="M" />
+              <QRCodeSVG value={answerData} size={320} level="L" />
             </div>
             <div className="flex items-center gap-2 text-blue-400 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />

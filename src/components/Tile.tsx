@@ -23,6 +23,8 @@ interface TileProps {
     tile: TileType
   ) => void;
   onTap?: (tileId: string) => void;
+  /** Callback al iniciar el arrastre — para activar ghost en el tablero */
+  onDragStart?: () => void;
   style?: React.CSSProperties;
 }
 
@@ -36,6 +38,7 @@ export default function Tile({
   boardState,
   onPlay,
   onDragEnd,
+  onDragStart,
   onTap,
   style,
 }: TileProps) {
@@ -153,6 +156,7 @@ export default function Tile({
       onDragStart={(_, info) => {
         dragOriginRef.current = { x: info.point.x, y: info.point.y };
         setIsDragging(true);
+        onDragStart?.(); // Notifica al padre para activar el ghost en el tablero
       }}
       onDragEnd={handleDragEnd}
       whileDrag={{ scale: 1.15, zIndex: 100, cursor: 'grabbing' }}

@@ -14,11 +14,13 @@ interface BoardProps {
   boardState: BoardState;
   isLocalTurn?: boolean;
   highlightEnds?: boolean;
+  /** Si el jugador está arrastrando una ficha — activa el ghost en las zonas */
+  isDraggingTile?: boolean;
 }
 
-/** Dimensiones de cada ficha en el tablero (px) */
-const TILE_W = 64;
-const TILE_H = 96;
+/** Dimensiones de cada ficha en el tablero (px) — reducidas para mayor zoom out */
+const TILE_W = 44;
+const TILE_H = 68;
 const GAP = 2;
 
 interface LayoutItem {
@@ -107,6 +109,7 @@ export default function Board({
   boardState,
   isLocalTurn = false,
   highlightEnds = false,
+  isDraggingTile = false,
 }: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const layout = getChainLayout(chain);
@@ -219,12 +222,12 @@ export default function Board({
         </div>
       </motion.div>
 
-      {/* Indicadores animados de extremos jugables */}
+      {/* Indicadores animados de extremos jugables con ghost tile */}
       <AnimatePresence>
         {highlightEnds && isLocalTurn && !boardEmpty && (
           <>
-            <EndHighlight position="left" value={boardState.leftEnd} />
-            <EndHighlight position="right" value={boardState.rightEnd} />
+            <EndHighlight position="left" value={boardState.leftEnd} showGhost={isDraggingTile} />
+            <EndHighlight position="right" value={boardState.rightEnd} showGhost={isDraggingTile} />
           </>
         )}
       </AnimatePresence>
@@ -234,36 +237,60 @@ export default function Board({
 
 /**
  * EndHighlight — Indicador visual de un extremo jugable.
- * Muestra un pulso animado con el valor del extremo.
+ * En modo arrastre muestra un "fantasma" (ghost) de ficha semi-transparente
+ * para que el jugador sepa exactamente dónde caerá la pieza.
  */
 function EndHighlight({
   position,
   value,
+  showGhost = false,
 }: {
   position: 'left' | 'right';
   value: number | null;
+  showGhost?: boolean;
 }) {
   const isLeft = position === 'left';
+
   return (
     <motion.div
       id={`drop-zone-${position}`}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
-      className={`absolute top-1/2 -translate-y-1/2 pointer-events-none ${isLeft ? 'left-3 sm:left-10' : 'right-3 sm:right-10'}`}
+      className={`absolute top-1/2 -translate-y-1/2 pointer-events-none ${
+        isLeft ? 'left-2 sm:left-6' : 'right-2 sm:right-6'
+      }`}
     >
-      <motion.div
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ repeat: Infinity, duration: 1.5 }}
-        className="w-14 h-24 sm:w-16 sm:h-28 rounded-xl border-2 border-dashed border-emerald/60 bg-emerald/10 flex items-center justify-center backdrop-blur-sm"
-      >
-        <span className="text-emerald text-2xl font-bold drop-shadow-lg">
-          {value ?? '?'}
-        </span>
-      </motion.div>
-      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] text-emerald font-bold whitespace-nowrap glass-panel px-2.5 py-0.5 rounded-lg">
-        {position === 'left' ? '← IZQ' : 'DER →'}
-      </div>
+      {showGhost ? (
+        /* Ghost tile: ficha fantasma semi-transparente con el número del extremo */
+        <motion.div
+          animate={{ scale: [1, 1.05, 1], opacity: [0.55, 0.8, 0.55] }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+          className="relative flex flex-col items-center justify-around rounded-lg border-2 border-dashed border-emerald bg-white/15 backdrop-blur-sm shadow-[0_0_20px_rgba(16,185,129,0.5)]"
+          style={{ width: TILE_W, height: TILE_H }}
+        >
+          {/* Línea divisoria central */}
+          <div className="absolute left-[15%] right-[15%] h-[2px] bg-emerald/50 top-1/2 -translate-y-1/2 rounded-full" />
+          {/* Mitad superior: número del extremo */}
+          <span className="text-emerald font-black text-lg drop-shadow-lg z-10" style={{ marginTop: 4 }}>
+            {value ?? '?'}
+          </span>
+          {/* Mitad inferior: punto de interrogación */}
+          <span className="text-white/50 font-bold text-lg z-10" style={{ marginBottom: 4 }}>?</span>
+        </motion.div>
+      ) : (
+        /* Estado normal: solo un borde punteado pulsante */
+        <motion.div
+          animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="rounded-xl border-2 border-dashed border-emerald/60 bg-emerald/8 flex items-center justify-center backdrop-blur-sm"
+          style={{ width: TILE_W, height: TILE_H }}
+        >
+          <span className="text-emerald text-xl font-bold drop-shadow-lg">
+            {value ?? '?'}
+          </span>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
