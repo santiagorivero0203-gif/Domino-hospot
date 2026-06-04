@@ -111,8 +111,10 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
           { 
             fps: 10, 
             qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-              return { width: Math.floor(minEdge * 0.8), height: Math.floor(minEdge * 0.8) };
+              const w = Math.max(250, viewfinderWidth || 0);
+              const h = Math.max(250, viewfinderHeight || 0);
+              const size = Math.floor(Math.min(w, h) * 0.8);
+              return { width: size, height: size };
             }
           },
           async (decodedText: string) => {
