@@ -77,37 +77,10 @@ export default function QRConnectionArea({ onConnected, onBack }: QRConnectionAr
 
         el.innerHTML = '';
         
-        // 1. Solicitud explícita de permisos y obtención de cámaras físicas
-        let cameras = [];
-        try {
-          cameras = await Html5Qrcode.getCameras();
-        } catch (camErr: any) {
-          throw new Error('El navegador bloqueó la solicitud de cámaras: ' + camErr.message);
-        }
-
-        if (!cameras || cameras.length === 0) {
-          throw new Error('No se detectaron cámaras en el dispositivo.');
-        }
-
-        // 2. Seleccionar la mejor cámara (trasera preferiblemente)
-        let cameraId = cameras[0].id; // Por defecto la primera
-        const backCamera = cameras.find(c => 
-          c.label.toLowerCase().includes('back') || 
-          c.label.toLowerCase().includes('trasera') ||
-          c.label.toLowerCase().includes('environment')
-        );
-        
-        if (backCamera) {
-          cameraId = backCamera.id;
-        } else if (cameras.length > 1) {
-          // Si hay varias y no dice "back", usualmente la última es la trasera en móviles
-          cameraId = cameras[cameras.length - 1].id;
-        }
-
         const scanner = new Html5Qrcode('qr-reader');
 
         await scanner.start(
-          cameraId, // Usar el ID exacto del hardware es más robusto en iOS/Android
+          { facingMode: 'environment' },
           { 
             fps: 10, 
             qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
