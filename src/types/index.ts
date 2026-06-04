@@ -61,8 +61,13 @@ export interface GameStore {
   gameOverWinnerId: string | null;
   targetScore: number;
   isTeamMode: boolean;
+  networkManager: any | null;
+  localPlayerId: string | null;
+  isHost: boolean;
 
   startGame: (playerCount: number, botCount: number, options?: GameOptions) => void;
+  startMultiplayerGame: (role: 'host' | 'client', manager: any) => void;
+  receiveNetworkMessage: (data: string) => void;
   playTile: (playerId: string, tileId: string, position: 'left' | 'right') => boolean;
   pass: (playerId: string) => void;
   nextTurn: () => void;
@@ -71,6 +76,7 @@ export interface GameStore {
 }
 
 export type GameMessage =
-  | { type: 'playTile'; tileId: string; position: 'left' | 'right' }
-  | { type: 'pass' }
-  | { type: 'sync'; state: { currentTurnIndex: number; board: BoardState } };
+  | { type: 'SYNC_STATE'; state: any }
+  | { type: 'PLAY_TILE'; playerId: string; tileId: string; position: 'left' | 'right' }
+  | { type: 'PASS_TURN'; playerId: string }
+  | { type: 'NEXT_ROUND'; state: any };

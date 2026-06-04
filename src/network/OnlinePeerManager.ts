@@ -3,9 +3,11 @@ import { WebRTCCallbacks, ConnectionState, PeerRole } from './WebRTCManager';
 
 export class OnlinePeerManager {
   private peer: Peer | null = null;
-  private conn: DataConnection | null = null;
-  private callbacks: WebRTCCallbacks;
-  private role: PeerRole | null = null;
+  /** Conexión activa de datos P2P (pública para que gameStore pueda re-registrar listeners) */
+  public conn: DataConnection | null = null;
+  /** Callbacks de la conexión (público para re-registrar onData en gameStore) */
+  public callbacks: WebRTCCallbacks;
+  private _role: PeerRole | null = null;
   private state: ConnectionState = 'idle';
 
   constructor(callbacks: WebRTCCallbacks) {
@@ -22,7 +24,7 @@ export class OnlinePeerManager {
   }
 
   getRole(): PeerRole | null {
-    return this.role;
+    return this._role;
   }
 
   isConnected(): boolean {
@@ -30,11 +32,11 @@ export class OnlinePeerManager {
   }
 
   async hostGame(roomCode: string): Promise<boolean> {
-    if (this.role || this.state !== 'idle') {
+    if (this._role || this.state !== 'idle') {
       this.callbacks.onError('Ya hay una conexión activa');
       return false;
     }
-    this.role = 'host';
+    this._role = 'host';
     this.setState('creating-offer');
 
     return new Promise((resolve) => {
@@ -67,11 +69,11 @@ export class OnlinePeerManager {
   }
 
   async joinGame(roomCode: string): Promise<boolean> {
-    if (this.role || this.state !== 'idle') {
+    if (this._role || this.state !== 'idle') {
       this.callbacks.onError('Ya hay una conexión activa');
       return false;
     }
-    this.role = 'client';
+    this._role = 'client';
     this.setState('scanning-offer');
 
     return new Promise((resolve) => {
@@ -143,7 +145,7 @@ export class OnlinePeerManager {
     }
     this.conn = null;
     this.peer = null;
-    this.role = null;
+    this._role = null;
     this.setState('idle');
   }
 }

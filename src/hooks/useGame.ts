@@ -6,10 +6,15 @@ export function useGame() {
   const store = useGameStore();
 
   const currentPlayer = store.players[store.currentTurnIndex];
-  const isLocalTurn = currentPlayer?.type === 'local';
-  const isBotTurn = currentPlayer?.type === 'bot';
 
-  const localPlayer = store.players.find((p) => p.type === 'local');
+  // En multijugador, el jugador local se identifica por localPlayerId.
+  // En singleplayer, es el primer jugador de tipo 'local'.
+  const localPlayer = store.localPlayerId
+    ? store.players.find((p) => p.id === store.localPlayerId)
+    : store.players.find((p) => p.type === 'local');
+
+  const isLocalTurn = currentPlayer != null && localPlayer != null && currentPlayer.id === localPlayer.id;
+  const isBotTurn = currentPlayer?.type === 'bot';
   const localHand = localPlayer?.hand ?? [];
 
   const validPlays = currentPlayer

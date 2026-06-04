@@ -14,10 +14,10 @@ import TurnOverlay from './components/TurnOverlay';
 import ScoreBoard from './components/ScoreBoard';
 import RoundEndModal from './components/RoundEndModal';
 import GameOverModal from './components/GameOverModal';
-import QRConnectionArea from './components/QRConnectionArea';
+import ConnectionArea from './components/QRConnectionArea';
 import OpponentHands from './components/OpponentHands';
 import { useGame } from './hooks/useGame';
-import type { WebRTCManager } from './network/WebRTCManager';
+
 
 /** Pantallas posibles de la aplicación */
 type Screen = 'setup' | 'playing' | 'multiplayer-qr';
@@ -45,10 +45,12 @@ export default function App() {
     setScreen('multiplayer-qr');
   }, []);
 
-  /** Callback al establecer conexión WebRTC exitosa */
-  const handleQRConnected = useCallback(
-    (_manager: WebRTCManager) => {
-      store.startGame(1, 0);
+  /** Callback al establecer conexión P2P exitosa (online o QR) */
+  const handleMultiplayerConnected = useCallback(
+    (manager: any) => {
+      // Detectar si somos Host o Client basado en el rol del manager
+      const role = manager.getRole?.() === 'host' || manager.role === 'host' ? 'host' : 'client';
+      store.startMultiplayerGame(role, manager);
       setScreen('playing');
     },
     [store],
@@ -66,9 +68,9 @@ export default function App() {
         )}
 
         {screen === 'multiplayer-qr' && (
-          <QRConnectionArea
+          <ConnectionArea
             key="qr"
-            onConnected={handleQRConnected}
+            onConnected={handleMultiplayerConnected}
             onBack={() => setScreen('setup')}
           />
         )}
